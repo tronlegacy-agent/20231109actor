@@ -1,8 +1,9 @@
-import firebase_admin
+import firebase_admin ,requests
 from firebase_admin import credentials, firestore
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
+from bs4 import BeautifulSoup
 
 from flask import Flask, render_template,request
 
@@ -26,6 +27,8 @@ def index():
 	homepage +=  "<a href=/account>網頁表單</a>"
 
 	homepage += "</br><a href=/wave>演員名單(年齡由小到大)</a>"
+
+	homepage += "</br><a href=/spider>網路爬蟲</a>"
 
 	return homepage
 
@@ -74,7 +77,26 @@ def read():
         Result += "演員：{}".format(doc.to_dict()) + "<br>"    
     return Result
 
+@app.route("/spider")
+
+def spider():
+	info = ""
+	url = "https://www1.pu.edu.tw/~tcyang/course.html"
+
+	Data = requests.get(url)
+	Data.encoding = "utf-8"
+	#print(Data.text)
+
+	sp = BeautifulSoup(Data.text, "html.parser")
+
+	result=sp.select(".team-box")
+	for x in result:
+		info += "<a href="+x.find("a").get("href") +">" + x.find("h4").text + "</a><br>"
+		info += x.find("p").text + "<br>"
+		info += x.find("a").get("href") + "<br>"
+		info += "<img src = https://www1.pu.edu.tw/~tcyang/" + x.find("img").get("src") + " width=200 height=auto ></img> + <br><br>"
+	return info
 
 		
-#if __name__ == "__main__":
-#	app.run()
+if __name__ == "__main__":
+	app.run()
